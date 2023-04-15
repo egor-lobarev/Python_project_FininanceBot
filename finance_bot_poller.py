@@ -1,5 +1,4 @@
 import pandas as pd
-
 from FinanceBot import FinanceBot
 
 class finance_bot_poller:
@@ -20,7 +19,7 @@ class finance_bot_poller:
                     value = int(input())
                     self.finance_bot.add_data(0, category, value)
                     print("Готово")
-                    self.finance_bot.show_data()
+                    self.finance_bot.print_data()
 
                 case '2':
                     print("Выберите категорию из списка")
@@ -86,18 +85,18 @@ class finance_bot_poller:
         print('1. Статистика за последние 30 дней\n 2. Статистика за последние x дней\n 3. Статистика с _ по _\nДля перехода введите номер пункта')
         message = str(input())
         if message == '1':
-            self.finance_bot.show_statistics_period(0)
-            self.finance_bot.show_statistics_period(1)
+            self.finance_bot.show_statistics(0)
+            self.finance_bot.show_statistics(1)
         if message == '2':
             print('введите количество дней:')
             days_number = int(input())
-            self.finance_bot.show_statistics_last(0, days_number)
-            self.finance_bot.show_statistics_last(1, days_number)
+            self.finance_bot.show_statistics(0, days=days_number)
+            self.finance_bot.show_statistics(1, days=days_number)
         if message == '3':
             print('Введите дату начала периода и конца с новой строки в формате dd/mm/yyyy')
             begin = pd.to_datetime(str(input()), format="%d/%m/%Y")
             end = pd.to_datetime(str(input()), format="%d/%m/%Y")
-            self.finance_bot.show_statistics_period(0, begin, end)
-            self.finance_bot.show_statistics_period(1, begin, end)
+            self.finance_bot.show_statistics(0, begin, end)
+            self.finance_bot.show_statistics(1, begin, end)
 
 
