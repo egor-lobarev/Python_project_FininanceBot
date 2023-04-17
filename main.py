@@ -1,2 +1,2 @@
-import FinanceBotPoller
-FinanceBotPoller.FinanceBotPoller()
+import finance_bot_poller
+finance_bot_poller.FinanceBotPoller()
