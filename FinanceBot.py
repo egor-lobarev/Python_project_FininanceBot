@@ -17,13 +17,14 @@ MAX_OPERATION = 10000
 
 ###########################
 class FinanceBot:
-    def __init__(self, is_default: bool = True):
+    def __init__(self, categories_default: bool = False, data_random: bool = False):
         self.data = {'expense/revenue(0/1)': [], 'value': [], 'date': [], 'category': []}
         self.expense_categories = ()
         self.revenue_categories = ()
-        if is_default:
+        if categories_default:
             self.expense_categories = default_expense_categories
             self.revenue_categories = default_revenue_categories
+        if data_random:
             self.data = self.__generate_data_randomly()
 
     def add_expense_category(self, new_category: str) -> None:
@@ -65,7 +66,7 @@ class FinanceBot:
         plt.title('Поступления' if is_revenue else 'траты')
         plt.show()
 
-    def save(self):
+    def save_data(self):
         pd.DataFrame(self.data).to_csv('data.csv', index=False)
 
     def get_expenses_categories(self):
@@ -76,6 +77,9 @@ class FinanceBot:
 
     def print_data(self):
         print(self.data)
+
+    def read_data(self):
+        self.data = pd.read_csv('data.csv').to_dict()
 
     @staticmethod
     def __generate_data_randomly() -> dict:
@@ -95,7 +99,8 @@ class FinanceBot:
                 'date': date_list,
                 'category': category}
 
-        return data# чтение данных из csv
+        return data
+# чтение данных из csv
 # data = pd.read_csv('data.csv')
 # data['date'] = pd.to_datetime(data['date'])
 
