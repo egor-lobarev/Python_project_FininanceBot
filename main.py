@@ -1,2 +1,4 @@
 import finance_bot_poller
-FinanceBotPoller.FinanceBotPoller()
+
+if __name__ == '__main__':
+    finance_bot_poller.FinanceBotPoller()
