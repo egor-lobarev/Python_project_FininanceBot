@@ -1,6 +1,6 @@
 import pandas as pd
 
-from FinanceBot import FinanceBot
+from finance_bot import FinanceBot
 
 
 class FinanceBotPoller:
