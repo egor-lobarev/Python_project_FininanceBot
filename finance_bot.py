@@ -12,21 +12,22 @@ default_expense_categories = list(['cупермаркеты', 'аптеки', '�
                                    'развлечения', 'здоровье'])
 default_revenue_categories = list(['Зарплата', 'переводы', 'аренда', 'дивиденды'])
 ROWS_GENERATING = 60
-OPERATIONS_IN_DAY = 2
+OPERATIONS_PER_DAY = 2
 MIN_OPERATION = 100
 MAX_OPERATION = 10000
+
 
 ###########################
 class FinanceBot:
     def __init__(self, categories_default: bool = False, data_random: bool = False):
         self.data = {'expense/revenue(0/1)': [], 'value': [], 'date': [], 'category': []}
-        self.expense_categories = ()
-        self.revenue_categories = ()
+        self.expense_categories = []
+        self.revenue_categories = []
         if categories_default:
             self.expense_categories = default_expense_categories
             self.revenue_categories = default_revenue_categories
-        if data_random:
-            self.data = self.__generate_data_randomly()
+            if data_random:
+                self.data = self.__generate_data_randomly()
 
     def add_expense_category(self, new_category: str) -> None:
         self.expense_categories.append(new_category)
@@ -41,8 +42,9 @@ class FinanceBot:
             self.expense_categories.append(new_category)
 
     def add_data(self, is_revenue: bool, category: str, value: int, date: datetime.date = datetime.today()):
-        if category not in self.expense_categories:
-            raise NotImplemented('No such category')
+        category_not_exists = category not in (self.revenue_categories if is_revenue else self.expense_categories)
+        if category_not_exists:
+            raise Exception('No such category')
         self.data['expense/revenue(0/1)'].append(is_revenue)
         self.data['value'].append(value)
         self.data['date'].append(date)
@@ -55,7 +57,7 @@ class FinanceBot:
             df = data[(data['date'].between(begin, end)) & (data['expense/revenue(0/1)'] == is_revenue)]
         else:
             df = data[(data['date'] >= (datetime.today() - timedelta(days=days))) & (
-                        data['expense/revenue(0/1)'] == is_revenue)]
+                    data['expense/revenue(0/1)'] == is_revenue)]
         sum_value = df.groupby('category')['value'].sum()
         categories = df['category'].unique()
 
@@ -67,26 +69,28 @@ class FinanceBot:
         plt.title('Поступления' if is_revenue else 'траты')
         plt.show()
 
-    def save_data(self):
-        pd.DataFrame(self.data).to_csv('data.csv', index=False)
+    def save_data(self, filename: str = 'data'):
+        pd.DataFrame(self.data).to_csv(filename + '.csv', index=False)
 
-    def get_expenses_categories(self):
-        return pd.Series(self.expense_categories)
+    def get_expense_categories(self) -> list:
+        return self.expense_categories
 
-    def get_revenues_categories(self):
-        return pd.Series(self.revenue_categories)
+    def get_revenue_categories(self) -> list:
+        return self.revenue_categories
 
     def print_data(self):
-        print(self.data)
+        print(pd.DataFrame(self.data))
 
-    def read_data(self):
-        self.data = pd.read_csv('data.csv').to_dict()
+    def read_data(self, file_name: str = 'data'):
+        frame = pd.read_csv(file_name + '.csv')
+        frame['date'] = pd.to_datetime(frame['date'])
+        self.data = frame.to_dict('list')
 
     @staticmethod
     def __generate_data_randomly() -> dict:
         rng = np.random.default_rng()
         base = datetime.today()
-        date_list = [base - timedelta(days=x//OPERATIONS_IN_DAY) for x in range(ROWS_GENERATING)]
+        date_list = [base - timedelta(days=x // OPERATIONS_PER_DAY) for x in range(ROWS_GENERATING)]
         exp_rev = list(rng.integers(0, 2, ROWS_GENERATING))
         category = list()
         for x in exp_rev:
@@ -101,6 +105,8 @@ class FinanceBot:
                 'category': category}
 
         return data
+
+
 # чтение данных из csv
 # data = pd.read_csv('data.csv')
 # data['date'] = pd.to_datetime(data['date'])

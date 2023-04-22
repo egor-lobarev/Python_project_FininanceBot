@@ -9,7 +9,7 @@ class FinanceBotPoller:
         match message:
             case '1':
                 print("Выберите категорию из списка")
-                exp = self.finance_bot.get_expenses_categories()
+                exp = self.finance_bot.get_expense_categories()
                 print(exp)
                 ind = int(input())
                 category = exp[ind]
@@ -21,7 +21,7 @@ class FinanceBotPoller:
 
             case '2':
                 print("Выберите категорию из списка")
-                rev = self.finance_bot.get_revenues_categories()
+                rev = self.finance_bot.get_revenue_categories()
                 print(rev)
                 ind = int(input())
                 category = rev[ind]
