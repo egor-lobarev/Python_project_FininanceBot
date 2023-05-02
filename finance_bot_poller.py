@@ -1,4 +1,5 @@
 import pandas as pd
+#from telebot.async_telebot import AsyncTeleBot
 
 from finance_bot import FinanceBot
 
@@ -8,10 +9,10 @@ class FinanceBotPoller:
         message = self.__poll(['1', '2', '3'])
         match message:
             case '1':
-                print("Выберите категорию из списка")
+                print("Выберите категорию из списка, введите номер")
                 exp = self.finance_bot.get_expense_categories()
-                print(exp)
-                ind = int(input())
+                print(' '.join([str(i + 1) + ": " + str(exp[i]) for i in range(len(exp))]))
+                ind = int(input()) - 1
                 category = exp[ind]
                 print("Введите сумму траты")
                 value = int(input())
@@ -20,10 +21,10 @@ class FinanceBotPoller:
                 self.finance_bot.print_data()
 
             case '2':
-                print("Выберите категорию из списка")
+                print("Выберите категорию из списка, введите номер")
                 rev = self.finance_bot.get_revenue_categories()
-                print(rev)
-                ind = int(input())
+                print(' '.join([str(i + 1) + ": " + str(rev[i]) for i in range(len(rev))]))
+                ind = int(input()) - 1
                 category = rev[ind]
                 print("Введите сумму поступления")
                 value = int(input())
@@ -32,6 +33,7 @@ class FinanceBotPoller:
             case '3':
                 self.stats()
         self.__show_menu()
+        self.__start()
 
     def read_categories(self, number_of_categories: int, is_revenue: bool):
         for _ in range(number_of_categories):
@@ -57,7 +59,7 @@ class FinanceBotPoller:
                 self.finance_bot = FinanceBot()
                 print(
                     'Добавим сначала категории для трат, напишите их количество. Далее название каждой категории пишите с новой строки')
-                number_categories = int(input())
+                number_categories = int(self.__poll(list(map(str, [i for i in range(1, 101)]))))
                 self.read_categories(number_categories, False)
                 print('Теперь добавим категории для любых выших поступлений. Алгоритм тот же.')
                 number_categories = int(input())
@@ -88,7 +90,6 @@ class FinanceBotPoller:
     @staticmethod
     def __show_menu():
         print('Меню:\n1. Добавить трату\n2. Добавить поступление\n3. Статистика\nДля перехода введите номер пункта')
-
     def exit(self):
         self.finance_bot.save_data()
         print('Пока!')

@@ -5,6 +5,7 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import sqlite3
 
 # Заполнение значений по умолчанию
 
@@ -59,7 +60,9 @@ class FinanceBot:
             df = data[(data['date'] >= (datetime.today() - timedelta(days=days))) & (
                     data['expense/revenue(0/1)'] == is_revenue)]
         sum_value = df.groupby('category')['value'].sum()
-        categories = df['category'].unique()
+        print(sum_value)
+        print(type(sum_value))
+        categories = sum_value.index
 
         plt.pie(sum_value, labels=categories, autopct='%1.1f%%', pctdistance=0.85,
                 explode=[0.05] * len(sum_value))
