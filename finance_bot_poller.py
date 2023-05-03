@@ -1,5 +1,4 @@
 import pandas as pd
-#from telebot.async_telebot import AsyncTeleBot
 
 from finance_bot import FinanceBot
 
@@ -47,24 +46,24 @@ class FinanceBotPoller:
         print('Привет, я стану твоим персональным финансовым помощникм для отслеживания своих трат. Давай начнём!'
               'Если вы захотите завершить сессию, введите \'exit\'')
         print('Хотите воспользоваться категориями трат и поступлений по умолчанию?\n(да\нет)')
-        match self.__poll(['да', 'нет']):
-            case'да':
-                categories_default = True
-                random_data = False
-                print('Хотите сгенеироравть данные рандомно?\n(да/нет)')
-                if self.__poll(['да', 'нет']) == 'да':
-                    random_data = True
-                self.finance_bot = FinanceBot(categories_default, random_data)
-            case 'нет':
-                self.finance_bot = FinanceBot()
-                print(
-                    'Добавим сначала категории для трат, напишите их количество. Далее название каждой категории пишите с новой строки')
-                number_categories = int(self.__poll(list(map(str, [i for i in range(1, 101)]))))
-                self.read_categories(number_categories, False)
-                print('Теперь добавим категории для любых выших поступлений. Алгоритм тот же.')
-                number_categories = int(input())
-                self.read_categories(number_categories, True)
-                print("Успех!")
+        ans =  self.__poll(['да', 'нет'])
+        if ans == 'да':
+            categories_default = True
+            random_data = False
+            print('Хотите сгенеироравть данные рандомно?\n(да/нет)')
+            if self.__poll(['да', 'нет']) == 'да':
+                random_data = True
+            self.finance_bot = FinanceBot(categories_default, random_data)
+        elif ans == 'нет':
+            self.finance_bot = FinanceBot()
+            print(
+                'Добавим сначала категории для трат, напишите их количество. Далее название каждой категории пишите с новой строки')
+            number_categories = int(self.__poll(list(map(str, [i for i in range(1, 101)]))))
+            self.read_categories(number_categories, False)
+            print('Теперь добавим категории для любых выших поступлений. Алгоритм тот же.')
+            number_categories = int(input())
+            self.read_categories(number_categories, True)
+            print("Успех!")
 
     def __init__(self):
         self.finance_bot = None

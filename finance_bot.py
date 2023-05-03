@@ -5,7 +5,7 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import sqlite3
+import database
 
 # Заполнение значений по умолчанию
 
@@ -21,8 +21,8 @@ MAX_OPERATION = 10000
 ###########################
 class FinanceBot:
     def __init__(self, categories_default: bool = False, data_random: bool = False):
-        self.data = {'expense/revenue(0/1)': [], 'value': [], 'date': [], 'category': []}
-        self.expense_categories = []
+        self.data = {'chat_id': [], 'value': [], 'date': [], 'category': []}
+        self.expense_categories = {'chat'}
         self.revenue_categories = []
         if categories_default:
             self.expense_categories = default_expense_categories
