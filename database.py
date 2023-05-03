@@ -1,37 +1,48 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
-from sqlalchemy.orm import DeclarativeBase
+import sqlite3
 
-engine = create_engine('sqlite:///finance.db', echo=True)
+sqlite_connection = sqlite3.connect('finance_bot_database.db')
 
+sqlite_create_table_query1 = '''CREATE TABLE IF NOT EXISTS user (
+                            id INTEGER PRIMARY KEY,
+                            name INTEGER);'''
 
-class Base(DeclarativeBase):
-    pass
+sqlite_create_table_query2 = '''CREATE TABLE IF NOT EXISTS operation (
+                            id INTEGER REFERENCES user(id),
+                            category TEXT NOT NULL,
+                            date datetime,
+                            value INTEGER,
+                            PRIMARY KEY(id, date));'''
 
+sqlite_create_table_query3 = '''CREATE TABLE IF NOT EXISTS revenue (
+                            id INTEGER,
+                            category INTEGER,
+                            PRIMARY KEY(id, category));'''
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
+sqlite_create_table_query4 = '''CREATE TABLE IF NOT EXISTS expense (
+                            id INTEGER,
+                            category INTEGER,
+                            PRIMARY KEY (id, category));'''
 
+sqlite_insert_expense_category = '''INSERT INTO expense VALUES (?, ?);'''
+sqlite_insert_revenue_category = '''INSERT INTO revenue VALUES (?, ?);'''
 
-class Operation(Base):
-    __tablename__ = 'operations'
-    id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    category = Column(String)
-    date = Column(String, primary_key=True)
-    value = Column(Float)
+sqlite_insert_operation = '''INSERT INTO operation VALUES (?, ?, ?, ?);'''
 
+sqlite_insert_user = '''INSERT INTO user VALUES (?, ?)'''
 
-class Expense(Operation):
-    __tablename__ = 'expenses'
-    id = Column(Integer, ForeignKey('operations.id'), primary_key=True)
-    category = Column(String, primary_key=True)
+sqlite_select_operations = '''SELECT category, date, value
+                        FROM operation
+                        WHERE date BETWEEN(?, ?) AND id = ?'''
 
+sqlite_select_expenses = '''SELECT category
+                            FROM expense
+                            WHERE id = ?;'''
+sqlite_select_revenues = '''SELECT category
+                            FROM revenue
+                            WHERE id = ?;'''
 
-class Revenue(Operation):
-    __tablename__ = 'revenues'
-    id = Column(Integer, ForeignKey('operations.id'), primary_key=True)
-    category = Column(String, primary_key=True)
-
-
-Base.metadata.create_all(engine)
+cursor = sqlite_connection.cursor()
+cursor.execute(sqlite_create_table_query1)
+cursor.execute(sqlite_create_table_query2)
+cursor.execute(sqlite_create_table_query3)
+cursor.execute(sqlite_create_table_query4)
