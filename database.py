@@ -1,32 +1,51 @@
 import sqlite3
-from sqlite3 import Error
 
-#использую SQLite, чтобы не париться с созданием сервера в postreSQL. В первую очередь проверяющему)
+sqlite_create_table_query1 = '''CREATE TABLE IF NOT EXISTS user (
+                            id INTEGER PRIMARY KEY,
+                            name INTEGER);'''
 
-sql_create_tasks_table = """CREATE TABLE IF NOT EXISTS data (
-                                id serial,
-                                expance_revenue bool,
-                                value integer,
-                                date text,
-                                category text
-                            );"""
+sqlite_create_table_query2 = '''CREATE TABLE IF NOT EXISTS operation (
+                            id INTEGER REFERENCES user(id),
+                            category TEXT NOT NULL,
+                            date datetime,
+                            value INTEGER);'''
+
+sqlite_create_table_query3 = '''CREATE TABLE IF NOT EXISTS revenue (
+                            id INTEGER,
+                            category INTEGER,
+                            PRIMARY KEY(id, category));'''
+
+sqlite_create_table_query4 = '''CREATE TABLE IF NOT EXISTS expense (
+                            id INTEGER,
+                            category INTEGER,
+                            PRIMARY KEY(id, category));'''
+
+sqlite_insert_expense_category = '''INSERT INTO expense VALUES (?, ?);'''
+sqlite_insert_revenue_category = '''INSERT INTO revenue VALUES (?, ?);'''
+
+sqlite_insert_operation = '''INSERT INTO operation VALUES (?, ?, ?, ?);'''
+
+sqlite_insert_user = '''INSERT INTO user VALUES (?, ?)'''
+
+sqlite_select_operations = '''SELECT category, date, value
+                              FROM operation
+                              WHERE date BETWEEN ? AND ? AND id = ?'''
+
+sqlite_select_expenses = '''SELECT category
+                            FROM expense
+                            WHERE id = ?;'''
+sqlite_select_revenues = '''SELECT category
+                            FROM revenue
+                            WHERE id = ?;'''
+
+sqlite_select_users = '''SELECT id
+                            FROM user;'''
 
 
-class DataBaseConnection():
-    def __init__(self):
-        self.conn = None
-        try:
-            self.conn = sqlite3.connect('finance_bot.db')
-            self.cursor = self.conn.cursor()
-        except Error as e:
-            print(e)
-            print()
-
-    def add_row(self, a, b, c, d):
-
-
-    def __del__(self):
-        self.conn.close()
-
-if '__name__' == '__main__':
-    DataBaseConnection()
+def create_database():
+    sqlite_connection = sqlite3.connect('finance_bot_database.db')
+    cursor = sqlite_connection.cursor()
+    cursor.execute(sqlite_create_table_query1)
+    cursor.execute(sqlite_create_table_query2)
+    cursor.execute(sqlite_create_table_query3)
+    cursor.execute(sqlite_create_table_query4)
