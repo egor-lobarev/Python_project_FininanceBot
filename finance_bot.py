@@ -8,6 +8,7 @@ import numpy as np
 import sqlite3
 
 import database
+from time import sleep
 
 # Заполнение значений по умолчанию
 
@@ -23,6 +24,7 @@ MAX_OPERATION = 10000
 ###########################
 class FinanceBot:
     def __init__(self, categories_default: bool = False, data_random: bool = False):
+        database.create_database()
         self.connection = sqlite3.connect('finance_bot_database.db')
         self.cursor = self.connection.cursor()
 
@@ -53,14 +55,17 @@ class FinanceBot:
 
     def show_statistics(self, chat_id: int, is_revenue: int,
                         begin: datetime.date = (datetime.today() - timedelta(days=30)),
-                        end: datetime.date = datetime.today(), days: int = 0):
+                        end: datetime.date = datetime.today()):
         self.cursor.execute(database.sqlite_select_operations, (begin, end, chat_id))
-        data = pd.DataFrame(self.cursor.fetchall())
-        if days == 0:
-            df = data[(data['date'].between(begin, end)) & (data['expense/revenue(0/1)'] == is_revenue)]
+        data = pd.DataFrame(self.cursor.fetchall(), columns=['category', 'date', 'value'])
+        if is_revenue:
+            self.cursor.execute(database.sqlite_select_revenues, (chat_id,))
         else:
-            df = data[(data['date'] >= (datetime.today() - timedelta(days=days))) & (
-                    data['expense/revenue(0/1)'] == is_revenue)]
+            self.cursor.execute(database.sqlite_select_expenses, (chat_id,))
+        list_categories = list(list(zip(*self.cursor.fetchall()))[0])
+        print(data)
+        print(list_categories, type(list_categories))
+        df = data[(data['category'].isin(['asadsf', 'sds']))]
         sum_value = df.groupby('category')['value'].sum()
         print(sum_value)
         print(type(sum_value))
@@ -91,21 +96,21 @@ class FinanceBot:
     def generate_data_randomly(self, chat_id: int):
         rng = np.random.default_rng()
         base = datetime.today()
-        date_list = [base - timedelta(days=x // OPERATIONS_PER_DAY) for x in range(ROWS_GENERATING)]
+        date_list = [base - timedelta(days=x // OPERATIONS_PER_DAY, seconds=x % OPERATIONS_PER_DAY) for x in
+                     range(ROWS_GENERATING)]
         category = list()
         self.cursor.execute(database.sqlite_select_revenues, (chat_id,))
         revenue_categories = self.cursor.fetchall()
         self.cursor.execute(database.sqlite_select_expenses, (chat_id,))
         expense_categories = self.cursor.fetchall()
         categories = revenue_categories + expense_categories
-        print(revenue_categories)
         for _ in range(ROWS_GENERATING):
             category.append(random.choice(categories))
+        values = list(map(int, rng.integers(MIN_OPERATION, MAX_OPERATION, ROWS_GENERATING)))
 
-        list_data = ()
-
-
-        for x, y, z  in date_list, category
+        for i in range(ROWS_GENERATING):
+            self.cursor.execute(database.sqlite_insert_operation, (chat_id, category[i][0], date_list[i], values[i]))
+        self.connection.commit()
 
 
 # чтение данных из csv
@@ -122,3 +127,4 @@ if __name__ == '__main__':
     fb.add_expense_category(1, 'asdasf')
     fb.add_revenue_category(1, 'wkllk')
     fb.generate_data_randomly(1)
+    fb.show_statistics(1, 0)
