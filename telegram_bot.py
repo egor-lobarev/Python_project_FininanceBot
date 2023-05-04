@@ -11,10 +11,10 @@ bot = TeleBot(telegram_config.TOKEN)
 
 
 # Define a function to ask the user a yes/no question with an inline keyboard
-def ask_yes_no_question(chat_id, question):
+def ask_yes_no_question(chat_id, question, unique = ''):
     keyboard = InlineKeyboardMarkup()
-    yes_button = InlineKeyboardButton(text='Да', callback_data='да')
-    no_button = InlineKeyboardButton(text='Нет', callback_data='нет')
+    yes_button = InlineKeyboardButton(text='Да', callback_data='да'+unique)
+    no_button = InlineKeyboardButton(text='Нет', callback_data='нет'+unique)
     keyboard.row(yes_button, no_button)
     bot.send_message(chat_id=chat_id, text=question, reply_markup=keyboard)
 
@@ -47,19 +47,23 @@ def expense_key_board(chat_id):
 @bot.message_handler(commands=['start'])
 def welcome(message):
     bot.reply_to(message, replies.HELLO)
-    ask_yes_no_question(message.chat.id, replies.HELLO_DEF)
+    if not FinanceBot().get_users() or message.chat.id not in FinanceBot().get_users():
+        FinanceBot().new_user(message.chat.id, message.from_user.first_name)
+        ask_yes_no_question(message.chat.id, replies.HELLO_DEF)
+    else:
+        bot.send_message(message.chat.id, "Вы уже зарегестрированы", reply_markup=menu_keyboard())
 
 
 @bot.callback_query_handler(func=lambda call: call.data in ['да', 'нет'])
 def handle(call):
     callback_data = call.data
     chat_id = call.message.chat.id
-
     if callback_data == 'да':
         FinanceBot().default_categories(chat_id)
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                       reply_markup=None)
         bot.send_message(chat_id, "Успешно добавлены категории по умолчанию!", reply_markup=menu_keyboard())
+        ask_yes_no_question(chat_id, "Хотите сделать рандомные данные?", '_rand')
 
     else:
         bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id,
@@ -73,6 +77,17 @@ def handle(call):
         # Send message with inline keyboard
         bot.send_message(call.message.chat.id, 'Выберите категории трат, которые вас интересуют:',
                          reply_markup=keyboard)
+
+@bot.callback_query_handler(func=lambda call: call.data in ['да_rand', 'нет_rand'] and FinanceBot().get_revenue_categories(
+    call.message.chat.id))
+def random_data(call):
+    if call.data == 'да_rand':
+        FinanceBot().generate_data_randomly(call.message.chat.id)
+        bot.send_message(call.message.chat.id, "Успех!")
+    bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                  reply_markup=None)
+    bot.send_message(call.message.chat.id, 'Настрока категорий завершена! Теперь можно приступить к работе.',
+                     reply_markup=menu_keyboard())
 
 
 @bot.callback_query_handler(
@@ -133,15 +148,9 @@ def category_revenue_exit(call):
     bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                   reply_markup=None)
     bot.answer_callback_query(callback_query_id=call.id, text='Успешно добавлены категории!')
-
-
-@bot.callback_query_handler(func=lambda call: call.data == 'выход' and FinanceBot().get_revenue_categories(
-    call.message.chat.id) and FinanceBot().get_expense_categories(call.message.chat.id))
-def exit_categories(call):
-    bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  reply_markup=None)
     bot.send_message(call.message.chat.id, 'Настрока категорий завершена! Теперь можно приступить к работе.',
                      reply_markup=menu_keyboard())
+    ask_yes_no_question(call.message.chat.id, "Хотите сделать рандомные данные?")
 
 
 @bot.message_handler(commands=['трата'])
@@ -161,7 +170,7 @@ def get_exp_category(message):
 def get_exp_value(message, category):
     value = message.text
     FinanceBot().add_data(message.chat.id, category, value)
-    bot.reply_to(message, "Отлично, трата добавлена!")
+    bot.send_message(message.chat.id, "Отлично, трата добавлена!", reply_markup=menu_keyboard())
 
 
 @bot.message_handler(commands=['доход'])
@@ -181,7 +190,24 @@ def get_rev_category(message):
 def get_value(message, category):
     value = message.text
     FinanceBot().add_data(message.chat.id, category, value)
-    bot.reply_to(message, "Отлично, доход добавлен!")
+    bot.send_message(message.chat.id, "Отлично, доход добавлен!", reply_markup=menu_keyboard())
+
+
+@bot.message_handler(commands=['статистика'])
+def stats(message):
+    if FinanceBot().get_expense_categories(message.chat.id) and FinanceBot().get_revenue_categories(message.chat.id):
+        FinanceBot().show_statistics(message.chat.id, 1)
+        FinanceBot().show_statistics(message.chat.id, 0)
+        with open('stats0.png', 'rb') as f1, open('stats1.png', 'rb') as f2:
+            # Send the files as a single document
+            with open('stats0.png', 'rb') as photo:
+                # send the PNG file to the chat ID you want to send it to
+                bot.send_photo(message.chat.id, photo)
+            with open('stats1.png', 'rb') as photo:
+                # send the PNG file to the chat ID you want to send it to
+                bot.send_photo(message.chat.id, photo)
+    else:
+        bot.send_message(message.chat.id, "Нет данных")
 
 
 bot.polling()

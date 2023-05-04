@@ -52,6 +52,13 @@ class FinanceBot:
         self.cursor.execute(database.sqlite_insert_operation, (chat_id, category, date, value))
         self.connection.commit()
 
+    def get_users(self):
+        self.cursor.execute(database.sqlite_select_users)
+        data = self.cursor.fetchall()
+        if data:
+            return list(list(zip(*data))[0])
+        return []
+
     def default_categories(self, chat_id: int):
         for exp in default_expense_categories:
             self.add_expense_category(chat_id, exp)
@@ -68,12 +75,8 @@ class FinanceBot:
         else:
             self.cursor.execute(database.sqlite_select_expenses, (chat_id,))
         list_categories = list(list(zip(*self.cursor.fetchall()))[0])
-        print(data)
-        print(list_categories, type(list_categories))
-        df = data[(data['category'].isin(['asadsf', 'sds']))]
+        df = data[(data['category'].isin(list_categories))]
         sum_value = df.groupby('category')['value'].sum()
-        print(sum_value)
-        print(type(sum_value))
         categories = sum_value.index
 
         plt.pie(sum_value, labels=categories, autopct='%1.1f%%', pctdistance=0.85,

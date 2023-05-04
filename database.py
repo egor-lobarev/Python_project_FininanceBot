@@ -8,8 +8,7 @@ sqlite_create_table_query2 = '''CREATE TABLE IF NOT EXISTS operation (
                             id INTEGER REFERENCES user(id),
                             category TEXT NOT NULL,
                             date datetime,
-                            value INTEGER,
-                            PRIMARY KEY(id, date));'''
+                            value INTEGER);'''
 
 sqlite_create_table_query3 = '''CREATE TABLE IF NOT EXISTS revenue (
                             id INTEGER,
@@ -19,7 +18,7 @@ sqlite_create_table_query3 = '''CREATE TABLE IF NOT EXISTS revenue (
 sqlite_create_table_query4 = '''CREATE TABLE IF NOT EXISTS expense (
                             id INTEGER,
                             category INTEGER,
-                            PRIMARY KEY (id, category));'''
+                            PRIMARY KEY(id, category));'''
 
 sqlite_insert_expense_category = '''INSERT INTO expense VALUES (?, ?);'''
 sqlite_insert_revenue_category = '''INSERT INTO revenue VALUES (?, ?);'''
@@ -38,6 +37,9 @@ sqlite_select_expenses = '''SELECT category
 sqlite_select_revenues = '''SELECT category
                             FROM revenue
                             WHERE id = ?;'''
+
+sqlite_select_users = '''SELECT id
+                            FROM user;'''
 
 
 def create_database():
