@@ -8,13 +8,12 @@ import numpy as np
 import sqlite3
 
 import database
-from time import sleep
+import replies
 
 # Заполнение значений по умолчанию
 
-default_expense_categories = list(['cупермаркеты', 'аптеки', 'еда вне дома', 'переводы', 'одежда', 'регулярные',
-                                   'развлечения', 'здоровье'])
-default_revenue_categories = list(['Зарплата', 'переводы', 'аренда', 'дивиденды'])
+default_expense_categories = replies.EXPENCE_CATEGORIES
+default_revenue_categories = replies.REVENUE_CATEGORIES
 ROWS_GENERATING = 60
 OPERATIONS_PER_DAY = 2
 MIN_OPERATION = 100
@@ -53,6 +52,12 @@ class FinanceBot:
         self.cursor.execute(database.sqlite_insert_operation, (chat_id, category, date, value))
         self.connection.commit()
 
+    def default_categories(self, chat_id: int):
+        for exp in default_expense_categories:
+            self.add_expense_category(chat_id, exp)
+        for rev in default_revenue_categories:
+            self.add_revenue_category(chat_id, rev)
+
     def show_statistics(self, chat_id: int, is_revenue: int,
                         begin: datetime.date = (datetime.today() - timedelta(days=30)),
                         end: datetime.date = datetime.today()):
@@ -77,14 +82,23 @@ class FinanceBot:
         fig = plt.gcf()
         fig.gca().add_artist(centre_circle)
         plt.title('Поступления' if is_revenue else 'траты')
+        plt.savefig(f'stats{is_revenue}.png')
         plt.show()
 
-    # def get_expense_categories(self, chat_id: int) -> list:
-    #     return self.expense_categories
-    #
-    # def get_revenue_categories(self) -> list:
-    #     return self.revenue_categories
-    #
+    def get_expense_categories(self, chat_id: int) -> list:
+        self.cursor.execute(database.sqlite_select_expenses, (chat_id,))
+        data = self.cursor.fetchall()
+        if data:
+            return list(list(zip(*data))[0])
+        return []
+
+    def get_revenue_categories(self, chat_id: int) -> list:
+        self.cursor.execute(database.sqlite_select_revenues, (chat_id,))
+        data = self.cursor.fetchall()
+        if data:
+            return list(list(zip(*data))[0])
+        return []
+
     # def print_data(self):
     #     print(pd.DataFrame(self.data))
 
@@ -128,3 +142,4 @@ if __name__ == '__main__':
     fb.add_revenue_category(1, 'wkllk')
     fb.generate_data_randomly(1)
     fb.show_statistics(1, 0)
+    fb.show_statistics(1, 1)
