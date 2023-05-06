@@ -60,8 +60,6 @@ class FinanceBot:
             df = data[(data['date'] >= (datetime.today() - timedelta(days=days))) & (
                     data['expense/revenue(0/1)'] == is_revenue)]
         sum_value = df.groupby('category')['value'].sum()
-        print(sum_value)
-        print(type(sum_value))
         categories = sum_value.index
 
         plt.pie(sum_value, labels=categories, autopct='%1.1f%%', pctdistance=0.85,
