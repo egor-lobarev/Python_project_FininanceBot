@@ -41,6 +41,19 @@ sqlite_select_revenues = '''SELECT category
 sqlite_select_users = '''SELECT id
                             FROM user;'''
 
+sqlite_delete_operation = '''DELETE FROM operation
+                        WHERE id = ?
+'''
+sqlite_delete_user = '''DELETE FROM user
+                        WHERE id = ?
+'''
+sqlite_delete_revenue = '''DELETE FROM revenue
+                        WHERE id = ?
+'''
+sqlite_delete_expense = '''DELETE FROM expense
+                        WHERE id = ?
+'''
+
 
 def create_database():
     sqlite_connection = sqlite3.connect('finance_bot_database.db')

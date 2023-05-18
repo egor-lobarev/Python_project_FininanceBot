@@ -130,6 +130,17 @@ class FinanceBot:
         self.connection.commit()
 
 
+    def reset_data(self, chat_id):
+        #try:
+            self.cursor.execute(database.sqlite_delete_user, (chat_id,))
+            self.cursor.execute(database.sqlite_delete_operation, (chat_id,))
+            self.cursor.execute(database.sqlite_delete_revenue, (chat_id,))
+            self.cursor.execute(database.sqlite_delete_expense, (chat_id,))
+            self.connection.commit()
+        #except:
+         #   print("Что-то пошло не так во время удаления")
+
+
 # чтение данных из csv
 # data = pd.read_csv('data.csv')
 # data['date'] = pd.to_datetime(data['date'])
